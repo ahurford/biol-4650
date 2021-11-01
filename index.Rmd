@@ -1,0 +1,331 @@
+---
+title: "Analysis of Data on the Existing Coastal and Marine Protected Areas"
+site: bookdown::bookdown_site
+output: bookdown::gitbook #bookdown::html_document2
+documentclass: book
+github-repo: jbaafi/BIOL4650-marine_conservation
+description: "Guide to help in analyzing data of coastal and marine protected areas"
+---
+
+# Getting started and Learning R
+
+If you have not used `R` previously, you may wish to work through Chapters 1 to 10 of the [Quantitative training guide](https://ahurford.github.io/quant-guide-all-courses/), which includes instructions on how to install `R` on a computer.
+
+In particular, in this lab you will work with the commands for [Handling data using dplyr](https://ahurford.github.io/quant-guide-all-courses/handling-data.html#dplyr) and [Making graphs in R](https://ahurford.github.io/quant-guide-all-courses/graph.html). To learn more about the commands that we are using in this lab, we recommend you read these sections.
+
+## To hand-in
+You are to hand-in your R Script along with the requirements described on the assignment sheet.
+
+# How to do the analysis in R
+
+## Data importation and filtering
+
+1.  Begin by making a [folder on your computer Desktop](https://ahurford.github.io/quant-guide-all-courses/style.html) where you will work on this assignment.
+
+```{r,out.width="40%",echo=F}
+knitr::include_graphics('./figures/folder.png')
+```
+
+2.  Visit [World Database on Protected Areas](https://www.protectedplanet.net/en/search-areas?geo_type=site) and download the `.csv` file for protected areas in the country you are studying. Save the `.csv` file to the folder you made on your Desktop.  You may rename the `.csv` file you downloaded if the preset name is complicated. I changed the file name to `ecuador.csv`. 
+
+Open R Studio and save a new R Script. In the top menu select `File > New File > R Script`, then `File > Save As`. Save the `.R` (the R Script) to the folder you made on your Desktop: 
+
+```{r,out.width="40%",echo=F}
+knitr::include_graphics('./figures/save_data.png')
+```
+
+It is helpful to save both this files in the same folder.
+
+3. You will need to install the package `dplyr`. See instructions for how to do so [here](https://ahurford.github.io/quant-guide-all-courses/rintro.html#r-packages), or type into your Console:
+
+```{r,eval=F}
+install.packages("dplyr")
+```
+
+Once it is installed, to use the `dplyr` functions you need to load the package,
+
+```{r,message=F}
+library(dplyr)
+```
+
+and [load your data](https://ahurford.github.io/quant-guide-all-courses/data-entry.html#loading-or-importing-data):
+
+```{r,results=FALSE}
+data1 <- read.csv(file = "ecuador.csv")
+```
+
+The above two commands are essential to your analysis so you should put them in your R Script, and it should look something like this:
+
+```{r,out.width="80%",echo=F}
+knitr::include_graphics('./figures/first_few.png')
+```
+
+However, you will not have selected Ecuador as your country, so your script will look slightly different (the data for Ecuador are unuseable for this exercise, so the dataset `ecuador.csv` is example data that are made up). 
+
+In the above screenshot, you can see that I have queried `head(data1)` in my Console. This was to check that my data had loaded. Steps that are essential to an analysis, I add to my R Script in the Source pane, in the order that I want them to run in. When I want to check something, then I do this in my Console. See [Finding your way around R Studio](https://ahurford.github.io/quant-guide-all-courses/rstudio.html) for an explanation of where the Source and Console panes are.
+
+<div class="alert alert-info">
+Generally, my workflow is to try commands in the Console. If the commands work as I planned, then I add them to my R Script. After having added a few commands I will run my R Script to check that all the commands are working together properly. To run my R Script, I click the `Source` button, select `Code > Source` from the top menu, or type `source('~/Desktop/cons-biol/ecuador-example.R')` in my Console (you will need to replace the code to the left with your own file names and the directory path for your computer). I will `Source` my code every few lines that I add to my R Script, and I will perform tests in the Console to make sure everything is working.
+</div>
+
+If your data has not loaded, the most likely problem is a spelling error or problems with specifying the [path](https://ahurford.github.io/quant-guide-all-courses/rintro.html#working-directory) to `ecuador.csv`. You might try:
+
+-   the [RStudio way](https://ahurford.github.io/quant-guide-all-courses/data-entry.html#the-rstudio-way-the-import-feature) of importing your data, or
+
+-   moving `ecuador.csv` to your [working directory](https://ahurford.github.io/quant-guide-all-courses/rintro.html#working-directory). To find out your working directory type `getwd()` into your Console:
+
+```{r}
+getwd()
+```
+
+- Searching your computer for `ecuador.csv` to make sure it is saved in correct place, and moving it as needed (it is easiest if the folder you are working in is on your computer Desktop).
+
+- Opening `ecuador.csv` in _Excel_ or _Numbers_ to check that your data download was successful. (if you do this make sure your still save the file as a `.csv` not `.xlsx` or other format).
+
+4.  After loading the data, read through the metadata file that is downloaded as a pdf file along with the `.csv` file to better understand the data and what you would like to plot.
+
+Please note the correct way to cite your data:
+
+---
+
+UNEP-WCMC and IUCN (2021), Protected Planet: The World Database on Protected Areas (WDPA) and World Database on Other Effective Area-based Conservation Measures (WD-OECM) [Online], October 2021, Cambridge, UK: UNEP-WCMC and IUCN. Available at: www.protectedplanet.net.
+
+---
+
+5.  You will want to do some exploration of your data. To recover the names of the columns of the data:
+
+```{r}
+names(data1)
+```
+
+Note that `names(data1)` is a good command to run in the `Console` because we want to know the column names so that we can extract the correct column later: `names(data1)` would be run in the `Console` because it is a query rather than an essential part of the analysis.
+
+6. Now we will extract the `MARINE` column. Try this in your Console (as this is just a test):
+
+```{r, results = F}
+select(data1, MARINE)
+```
+
+You need to write the column name exactly as it appears in the output of `names(data1)` or R will produce an error. Remember `MARINE` is capitalized in the data frame so be careful not to type `Marine`, which will come out as an error. 
+
+
+7. We want to filter the data to separate protected areas identified as exclusively terrestrial from those that include marine areas. The new data created will be saved as `data2`. Let's run this code in the `Console`:
+
+```{r, results=F}
+data2 <- filter(data1, MARINE != 0)
+```
+
+In the `MARINE` column `0` indicates that a site is not marine. The new variable `data2` now contains all the rows for the marine sites because `!=0` means the value is not 0, and so therefore the site *is* marine (a double negative!).
+
+Check your output (in your Console):
+
+```{r, results=F}
+head(data2)
+head(data2$MARINE)
+```
+
+In particular, look at the `MARINE` column. Are there any `0`s left in the `MARINE` column? No? Good, because we want the marine sites, so we do not want any `0`s in the `MARINE` column. Now we have found a line of code that works for our analysis so we add it to our R Script:
+
+```{r,out.width="80%",echo=F}
+knitr::include_graphics('./figures/filter.png')
+```
+
+In the above screen shot you can see that after I source my full R Script, I check to see that I have filtered out the sites that are not marine. If your country doesn't include any marine sites, you will need to choose another country.
+
+2. We want to compute the average size of coastal MPAs for the example Ecuador data. Unfortunately, some of the MPAs have `NA` instead of a reported size in the `GIS_M_AREA` column:
+
+```{r}
+which(is.na(data2$GIS_M_AREA)=="TRUE")
+```
+
+The result output above states that rows 21 and 22 have `NA` in the `GIS_AREA` column of `data2`. You can verify this by typing the following in the Console:
+
+```{r}
+data2$GIS_M_AREA[21]
+```
+
+Yes, indeed, row 21 of `data2$GIS_M_AREA` is `NA`. We will need to remove the `NA`s. If you are lucky and have no `NA`s in your data, you can skip this step (instead just add `data3 <- data2` to your R Script). The following command (entered into the Console) tells us how many `NA`s, we have in the `GIS_M_AREA` column of `data2`:
+
+```{r}
+length(which(is.na(data2$GIS_M_AREA)=="TRUE"))
+```
+
+I have 2. The command to [remove the `NA`s](https://ahurford.github.io/quant-guide-all-courses/handling-data.html#dplyr) is:
+
+```{r, results=F}
+data3 <- filter(data2, !is.na(GIS_M_AREA))
+```
+
+Let's check that we effectively removed the `NA`s from the data:
+
+```{r, results=F}
+head(which(is.na(data3$GIS_M_AREA)=="TRUE"))
+length(which(is.na(data3$GIS_M_AREA)=="TRUE"))
+```
+Now we see that `data3` is a cleaned up version of `data2` that no longer contains the the `NA` values in the `GIS_M_AREA` column. We know this because when we use `length()` to find out how many of the values in `data3$GIS_M_AREA` are `NA`, the returned value is 0.
+
+The line of code with `filter()` is an essential step in the analysis so you will want to add it as the next line of code in your R Script:
+
+```{r,out.width="80%",echo=F}
+knitr::include_graphics('./figures/step3.png')
+```
+
+3. We can now calculate the mean and median sizes of the coastal MPAs. Let's run this code in your Console:
+
+```{r, results=F}
+mean(data3$GIS_M_AREA)
+median(data3$GIS_M_AREA)
+```
+
+(Note `mean(data2$GIS_M_AREA)` returns `NA` due to the `NA`s having not been removed in the dataframe `data2`)
+
+## Preparing the data for graphing
+
+Before, we can make the graphs we will need to organize the data we want to graph.
+
+1. First, we would like to graph the number of areas in each level of protection. To do this, we will have to group the data according to the level of protection and count the number of areas in each level of protection and saving it as `data4`.
+
+
+```{r, results=F}
+data4 <- data3 %>%
+  group_by(IUCN_CAT) %>%
+  tally()
+```
+
+Let's query the result in our `Console` to see that this worked:
+
+```{r}
+data4
+```
+
+Note that for the original Ecuador data this did not work because all entries in the `IUCN_CAT` column were `Not Reported` or `Not Applicable` (`ecuador.csv` is a supplemented version of the true Ecuador data with some `IUCN_CAT` set to `II` and `III`). In this example, row 3 is `Not Reported`. We need to remove this row:
+
+```{r, results=F}
+data4 <- data4[-3, ] 
+```
+
+Note that the minus sign indicates to remove, and now `data4` has the `Not Reported` row (both columns) removed. If you have more than one row to be removed, you would use `data4 <- data4[-c(3,4,6),]` where you want to remove rows 3, 4, and 6. (Note that the comma is needed outside the round bracket to indicate all columns. The rows are specified by `c(3,4,6)`).
+
+Here `data4` appears on both the left- and righthand size of `<-`, so the old variable `data4` (containing row 3) is overwritten with the new variable `data4`, which has row 3 removed.
+
+Our data describing the number of areas in each level of protection is now ready as `data4`, but let's clean more data to make another graph before moving on to the graphing section. You R Script should now look like this:
+
+```{r,out.width="80%",echo=F}
+knitr::include_graphics('./figures/data4.png')
+```
+
+(where the top rows of code weren't able to fit in the screen shot, but they are the same as before)
+
+2. Now we would like to calculate the amount of area that is strongly protected.
+
+We can do this by grouping by the `IUCN_CAT` column of `data3`, and summing the area `GIS_M_AREA` for the MPAs within the group. We name the result `data5`. Run this command in your R Console:
+
+```{r, results=F}
+data5 <- data3 %>% 
+  group_by(IUCN_CAT) %>% 
+  summarise(AREA_SUM = sum(GIS_M_AREA))
+```
+
+We can check the result by typing, in the Console:
+
+```{r}
+data5
+```
+
+Note that this time, we would like to leave the categories: `Not applicable`, `Not assigned` and `Not reported` (**Evan is this right???)**. If `data5` looks good, you will want to add the commands that produced `data5` to your R Script.
+
+If it is confusing to follow such specific instructions, and you would like to have a more general understanding of the commands, you might read [Handling the data](https://ahurford.github.io/quant-guide-all-courses/handling-data.html).
+
+## Making graphs
+
+In this section we will made graphs of `data4` and `data5`.
+
+1. We would like to construct a histogram to graph the size-frequency distribution. 
+
+We will construct a histogram without a logarithm scale first, with the function `hist()`. The data we need to use are `data3$GIS_M_AREA` which contains the areas of the marine protected areas:
+
+```{r}
+hist(data3$GIS_M_AREA, breaks = 50,
+     xlab = "Size of MPAs",
+     ylab="Frequency",
+     main = "The size-frequency distribution of MPAs")   # Histogram without logarithmic axis
+```
+
+Note that the graph appears in the plot window:
+
+```{r,out.width="80%",echo=F}
+knitr::include_graphics('./figures/plot.png')
+```
+
+We can plot these results on a logarithm scale as:
+
+```{r}
+hist(log(data3$GIS_M_AREA), breaks = 50, xlab = "x label here", ylab = "y label here", main = "title here")   # Histogram with logarithmic axis
+```
+
+The above command, when you have corrected the title and axis labels, you can add to your R Script.
+
+We can use a barplot to show the number of areas under each level of protection from the data contained in `data4`. Remember that `data4` has two columns:
+
+```{r}
+data4
+```
+
+The values of interest are in the column named `n`, which are the numbers associated with each level of protection. We refer to just this column using the command `data4$n`. The names to go on the x-axis of the barplot are `data4$IUCN_CAT`. Use the following code to make the bar plot and add it to your R Script:
+
+```{r, results=F}
+barplot(data4$n,
+        xlab = "Level of protection",
+        ylab="Number of areas",
+        names.arg=data4$IUCN_CAT,
+        las=1,
+        main="Number of areas for each level of protection")
+```
+
+Let's revisit the data we saved in `data5`. Enter into your Console:
+
+```{r}
+data5
+```
+
+The column containing the data that we want to use for the barplot is `data5$AREA_SUM` which is that total area for each category. Add the following to your R Script:
+
+```{r, results=F}
+barplot(data5$AREA_SUM,
+        xlab = "Level of protection",
+        ylab="Area(Amt. land and water/km^2)",
+        names.arg=data5$IUCN_CAT,
+        las=3,
+        main="Area of land and water for each level of protection")
+```
+
+The last few lines of your R Script would look like this:
+```{r,out.width="80%",echo=F}
+knitr::include_graphics('./figures/final.png')
+```
+
+See [here](https://ahurford.github.io/quant-guide-all-courses/graph.html#export) for instructions for how to export your graphs.
+
+<!-- **ADVANCED ggplot2 (not required)** -->
+
+<!-- `ggplot2` is a package that makes beautiful graphs. -->
+
+<!-- Install the `ggplot2` package using the `install.packages()` and Load the _ggplot2_ package using the `library()`. We plot a histogram with logarithmic axis by running the code below: -->
+
+<!-- ```{r} -->
+<!-- library(ggplot2) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- ggplot(data.frame(log(data3$GIS_M_AREA)), aes(log(data3$GIS_M_AREA))) +  -->
+<!--   geom_histogram(bins = 50) -->
+<!-- ``` -->
+
+<!-- We can also plot with the `scale_c_log10()` function: -->
+
+<!-- ```{r} -->
+<!-- ggplot(data.frame(data3$GIS_M_AREA), aes(data3$GIS_M_AREA)) + -->
+<!-- geom_histogram(color = "blue", fill = "green", bins = 50) + -->
+<!-- scale_x_log10() -->
+<!-- ``` -->
+
